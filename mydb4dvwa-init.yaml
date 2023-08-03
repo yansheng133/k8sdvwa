@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mydb4dvwa
+  name: mydb4dvwa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mydb4dvwa
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mydb4dvwa
+    spec:
+      containers:
+      - image: mariadb
+        name: mariadb
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: vulnerables
+        ports:
+        - containerPort: 3306
+        resources: {}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+      initContainers:
+      - name: init-container
+        image: registry.suse.com/bci/bci-busybox:latest
+        command: ["sh", "-c"]
+        args: ["echo 'CREATE DATABASE dvwa; GRANT ALL ON dvwa.* TO root@'%' IDENTIFIED BY 'password';' > /var/lib/mysql/init_sql"]
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mydb4dvwa
+  name: mydb4dvwa
+spec:
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: mydb4dvwa
+status:
+  loadBalancer: {}

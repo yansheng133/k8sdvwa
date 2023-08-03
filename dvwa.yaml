@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dvwa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dvwa
+  template:
+    metadata:
+      labels:
+        app: dvwa
+    spec:
+      containers:
+      - image: vulnerables/web-dvwa
+        imagePullPolicy: IfNotPresent
+        name: dvwax
+        ports:
+        - containerPort: 80
+          name: 80tcp
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/www/html/config/
+          name: config-map
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: config.inc.php
+        name: config-map
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: dvwa
+spec:
+  ports:
+  - nodePort: 32180
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: dvwa
+  type: NodePort
+status:
+  loadBalancer: {}
